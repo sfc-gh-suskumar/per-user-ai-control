@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="snowflake-source" content="cortex-agent-authored" />
+  <title>Per-User AI Cost Control &amp; Guardrails</title>
+  <script type="application/json" id="snowflake-report-metadata">
+  {
+    "generated": "2026-09-15",
+    "intent": "Framework overview for Per-User AI Cost Control & Guardrails solution",
+    "sections": [
+      { "id": "problem", "title": "The Problem", "producerNotes": "Static content describing the business problem" },
+      { "id": "solution", "title": "The Solution", "producerNotes": "Describes Snowflake Per-User Quotas (GA)" },
+      { "id": "architecture", "title": "Architecture", "producerNotes": "Inline SVG architecture diagram" },
+      { "id": "admin-app", "title": "Admin App", "producerNotes": "Streamlit app pages and capabilities" },
+      { "id": "deployment", "title": "Deployment", "producerNotes": "3-step deployment guide" },
+      { "id": "customization", "title": "Customization", "producerNotes": "How to tailor for your environment" }
+    ]
+  }
+  </script>
+  <style>
+    :root { color-scheme: light dark; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      color: light-dark(#1e293b, #e2e8f0);
+      background: light-dark(#ffffff, #0f172a);
+      line-height: 1.6;
+    }
+
+    /* Layout */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* Left Navigation */
+    .sidebar {
+      position: sticky; top: 0; height: 100vh;
+      width: 260px; min-width: 260px;
+      background: light-dark(#f8fafc, #1e293b);
+      border-right: 1px solid light-dark(#e2e8f0, #334155);
+      padding: 24px 0;
+      overflow-y: auto;
+    }
+    .sidebar-logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid light-dark(#e2e8f0, #334155);
+      margin-bottom: 16px;
+    }
+    .sidebar-logo .brand {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: light-dark(#29b5e8, #29b5e8);
+    }
+    .sidebar-logo .title {
+      font-size: 14px; font-weight: 600; margin-top: 6px;
+      color: light-dark(#0f172a, #f1f5f9);
+    }
+    .nav-section {
+      padding: 8px 20px 4px;
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase;
+      color: light-dark(#94a3b8, #64748b);
+    }
+    .sidebar a {
+      display: block; padding: 8px 20px;
+      font-size: 14px; text-decoration: none;
+      color: light-dark(#475569, #94a3b8);
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+    }
+    .sidebar a:hover, .sidebar a.active {
+      color: light-dark(#0f172a, #f1f5f9);
+      background: light-dark(#e2e8f0, #334155);
+      border-left-color: #29b5e8;
+    }
+    .sidebar .page-num {
+      display: inline-block; width: 22px; font-size: 11px;
+      color: light-dark(#94a3b8, #64748b); font-weight: 600;
+    }
+
+    /* Main Content */
+    .main {
+      flex: 1; min-width: 0;
+      max-width: 900px;
+      padding: clamp(24px, 5vw, 48px);
+    }
+
+    /* Page sections */
+    .page {
+      padding-bottom: 48px;
+      margin-bottom: 48px;
+      border-bottom: 1px solid light-dark(#e2e8f0, #334155);
+    }
+    .page:last-child { border-bottom: none; }
+    .page-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #29b5e8;
+      margin-bottom: 8px;
+    }
+    h1 { font-size: 28px; font-weight: 700; color: light-dark(#0f172a, #f1f5f9); margin-bottom: 16px; }
+    h2 { font-size: 22px; font-weight: 700; color: light-dark(#0f172a, #f1f5f9); margin: 32px 0 12px; }
+    h3 { font-size: 16px; font-weight: 600; color: light-dark(#334155, #cbd5e1); margin: 20px 0 8px; }
+    p { margin-bottom: 12px; }
+
+    /* Cards */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px; margin: 20px 0;
+    }
+    .card {
+      background: light-dark(#f8fafc, #1e293b);
+      border: 1px solid light-dark(#e2e8f0, #334155);
+      border-radius: 10px; padding: 20px;
+    }
+    .card .card-icon { font-size: 28px; margin-bottom: 8px; }
+    .card .card-title { font-size: 14px; font-weight: 700; color: light-dark(#0f172a, #f1f5f9); margin-bottom: 6px; }
+    .card .card-text { font-size: 13px; color: light-dark(#64748b, #94a3b8); }
+
+    /* Tier table */
+    .table-wrap { overflow-x: auto; margin: 16px 0; }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    th, td { border: 1px solid light-dark(#e2e8f0, #334155); padding: 10px 14px; text-align: left; }
+    th { background: light-dark(#f1f5f9, #1e293b); font-weight: 600; font-size: 13px; }
+    tr:nth-child(even) td { background: light-dark(#f8fafc, #0f172a33); }
+
+    /* Highlight box */
+    .highlight {
+      background: light-dark(#eff6ff, #1e3a5f);
+      border-left: 4px solid #29b5e8;
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px; margin: 20px 0;
+      font-size: 14px;
+    }
+    .highlight strong { color: light-dark(#1e40af, #93c5fd); }
+
+    /* Warning box */
+    .warn-box {
+      background: light-dark(#fef3c7, #451a03);
+      border-left: 4px solid #f59e0b;
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px; margin: 20px 0;
+      font-size: 14px;
+    }
+
+    /* Tier badges */
+    .tier-badge {
+      display: inline-block; padding: 3px 10px;
+      border-radius: 12px; font-size: 12px; font-weight: 600;
+    }
+    .tier-1 { background: #dbeafe; color: #1e40af; }
+    .tier-2 { background: #fef3c7; color: #92400e; }
+    .tier-3 { background: #fee2e2; color: #991b1b; }
+
+    /* Flow steps */
+    .steps { counter-reset: step; margin: 20px 0; }
+    .step {
+      display: flex; gap: 16px; margin-bottom: 20px;
+      counter-increment: step;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 36px; height: 36px;
+      background: light-dark(#29b5e8, #0e7490);
+      color: white; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700;
+    }
+    .step-content { flex: 1; }
+    .step-content .step-title { font-weight: 600; color: light-dark(#0f172a, #f1f5f9); }
+    .step-content .step-desc { font-size: 13px; color: light-dark(#64748b, #94a3b8); margin-top: 2px; }
+
+    /* Code */
+    code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: light-dark(#f1f5f9, #1e293b);
+      padding: 2px 6px; border-radius: 4px; font-size: 13px;
+    }
+    pre {
+      background: light-dark(#f1f5f9, #1e293b);
+      border: 1px solid light-dark(#e2e8f0, #334155);
+      border-radius: 8px; padding: 16px; overflow-x: auto;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px; line-height: 1.5; margin: 16px 0;
+    }
+
+    /* App pages grid */
+    .app-pages { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin: 16px 0; }
+    .app-page {
+      background: light-dark(#f8fafc, #1e293b);
+      border: 1px solid light-dark(#e2e8f0, #334155);
+      border-radius: 8px; padding: 14px 16px;
+    }
+    .app-page .ap-name { font-weight: 600; font-size: 14px; color: light-dark(#0f172a, #f1f5f9); }
+    .app-page .ap-desc { font-size: 12px; color: light-dark(#64748b, #94a3b8); margin-top: 4px; }
+
+    /* SVG */
+    .arch-svg { margin: 24px 0; }
+    .arch-svg svg { max-width: 100%; height: auto; }
+
+    /* Feature list */
+    .feature-list { list-style: none; margin: 16px 0; }
+    .feature-list li {
+      padding: 8px 0 8px 28px;
+      position: relative; font-size: 14px;
+    }
+    .feature-list li::before {
+      content: '\2713'; position: absolute; left: 4px;
+      color: #29b5e8; font-weight: 700;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 48px; padding-top: 24px;
+      border-top: 1px solid light-dark(#e2e8f0, #334155);
+      font-size: 12px; color: light-dark(#94a3b8, #64748b);
+      text-align: center;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { padding: 20px; }
+      h1 { font-size: 22px; }
+    }
+    img, svg { max-width: 100%; height: auto; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+
+    <!-- Left Navigation -->
+    <nav class="sidebar">
+      <div class="sidebar-logo">
+        <div class="brand">Snowflake</div>
+        <div class="title">Per-User AI Cost Control &amp; Guardrails</div>
+      </div>
+      <div class="nav-section">Framework Overview</div>
+      <a href="#problem"><span class="page-num">01</span> The Problem</a>
+      <a href="#solution"><span class="page-num">02</span> The Solution</a>
+      <a href="#architecture"><span class="page-num">03</span> Architecture</a>
+      <a href="#admin-app"><span class="page-num">04</span> Admin App</a>
+      <a href="#deployment"><span class="page-num">05</span> Deployment</a>
+      <a href="#customization"><span class="page-num">06</span> Customization</a>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+
+      <!-- PAGE 1: The Problem -->
+      <section id="problem" class="page">
+        <div class="page-label">Page 01</div>
+        <h1>The Problem</h1>
+        <p>As organizations adopt Snowflake AI services &mdash; AI Functions, Cortex Agents, Snowflake Intelligence (CoWork), and Cortex Code (CoCo) &mdash; AI credit consumption grows rapidly and unpredictably across hundreds or thousands of users.</p>
+
+        <div class="card-grid">
+          <div class="card">
+            <div class="card-icon">&#x26A0;</div>
+            <div class="card-title">No Per-User Visibility</div>
+            <div class="card-text">Traditional budgets track aggregate spend. There's no way to see which individual user is burning credits fastest.</div>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#x1F4B8;</div>
+            <div class="card-title">Runaway Costs</div>
+            <div class="card-text">A single user running AI_COMPLETE over a large dataset can consume hundreds of credits in minutes, with no automatic stop.</div>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#x1F512;</div>
+            <div class="card-title">No Tiered Control</div>
+            <div class="card-text">Different teams and roles need different spending limits. One-size-fits-all doesn't work for varied AI usage patterns.</div>
+          </div>
+          <div class="card">
+            <div class="card-icon">&#x1F514;</div>
+            <div class="card-title">Reactive, Not Proactive</div>
+            <div class="card-text">Admins discover cost overruns after the fact. By the time a bill arrives, the damage is done.</div>
+          </div>
+        </div>
+
+        <div class="highlight">
+          <strong>The core question:</strong> How do you enable broad AI adoption across your organization while maintaining per-user spending guardrails, real-time enforcement, and operational visibility?
+        </div>
+      </section>
+
+      <!-- PAGE 2: The Solution -->
+      <section id="solution" class="page">
+        <div class="page-label">Page 02</div>
+        <h1>The Solution: Per-User Quotas</h1>
+        <p>Snowflake's <strong>Per-User Quotas</strong> (GA feature, <code>SNOWFLAKE.CORE.QUOTA</code>) enforce per-user spending limits at the platform level. This framework builds on that with a tiered model, automated tagging, and an admin app.</p>
+
+        <h2>Tiered Quota Model</h2>
+        <p>Users are assigned to tiers via a tag. Each tier has its own daily and monthly credit limits, enforced independently.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th></th><th><span class="tier-badge tier-1">TIER 1</span> Standard</th><th><span class="tier-badge tier-2">TIER 2</span> Power User</th><th><span class="tier-badge tier-3">TIER 3</span> Heavy User</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Daily Limit</strong></td><td>1 credit</td><td>2 credits</td><td>3 credits</td></tr>
+              <tr><td><strong>Monthly Limit</strong></td><td>10 credits</td><td>20 credits</td><td>30 credits</td></tr>
+              <tr><td><strong>Notifications</strong></td><td colspan="3">50%, 80%, 100% actual &mdash; both daily and monthly cycles</td></tr>
+              <tr><td><strong>Block Enforcement</strong></td><td colspan="3">Automatic &mdash; user blocked when daily OR monthly limit exceeded</td></tr>
+              <tr><td><strong>Covered Services</strong></td><td colspan="3">AI Functions, Cortex Agents, Snowflake Intelligence, Cortex Code</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="warn-box">
+          <strong>Limits are customizable.</strong> The values above are defaults. Adjust daily/monthly limits, number of tiers, and notification thresholds to match your organization's needs.
+        </div>
+
+        <h2>Key Capabilities</h2>
+        <ul class="feature-list">
+          <li>Daily and monthly per-user credit limits, enforced independently</li>
+          <li>Automatic blocking when limits are exceeded (within minutes)</li>
+          <li>Email notifications at configurable thresholds (user + admin)</li>
+          <li>Tag-based user routing &mdash; move users between tiers instantly</li>
+          <li>Automatic tagging of new users to a default tier</li>
+          <li>Exempt user list for service accounts or executives</li>
+          <li>Audit trail for every admin action with ServiceNow ticket tracking</li>
+          <li>Blocks auto-release at cycle reset (daily at UTC midnight, monthly on the 1st)</li>
+        </ul>
+      </section>
+
+      <!-- PAGE 3: Architecture -->
+      <section id="architecture" class="page">
+        <div class="page-label">Page 03</div>
+        <h1>Architecture</h1>
+        <p>The framework has six layers: Admin App, Cache, Scheduled Tasks, Per-User Quotas, Tag System, and AI Services. Data flows top-down for reads and bottom-up for credit metering.</p>
+
+        <div class="arch-svg">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 780" font-family="-apple-system, system-ui, sans-serif">
+            <rect width="800" height="780" fill="light-dark(#fafbfc, #0f172a)" rx="12"/>
+
+            <!-- ROW 1: Streamlit App -->
+            <rect x="200" y="30" width="400" height="70" rx="10" fill="#11567F" stroke="#0D4A6B" stroke-width="2"/>
+            <text x="400" y="57" text-anchor="middle" font-size="14" font-weight="700" fill="white">Streamlit Admin App</text>
+            <text x="400" y="77" text-anchor="middle" font-size="10" fill="#B2D4E8">Quota Mgmt | Tag Mgmt | Block Status | Tier Lookup | Audit Log</text>
+            <text x="400" y="92" text-anchor="middle" font-size="9" fill="#8BB8D4">Deployed as QUOTA_ADMIN role</text>
+
+            <!-- Arrow: App down -->
+            <path d="M400 100 L400 135" fill="none" stroke="#48BB78" stroke-width="2" marker-end="url(#ag)"/>
+            <text x="415" y="122" font-size="9" fill="#48BB78" font-weight="600">reads</text>
+
+            <!-- ROW 2: Quota Objects -->
+            <rect x="100" y="140" width="600" height="85" rx="8" fill="light-dark(#E6FFFA, #0d3331)" stroke="#38B2AC" stroke-width="1.5"/>
+            <text x="400" y="163" text-anchor="middle" font-size="13" font-weight="600" fill="light-dark(#234E52, #5eead4)">Per-User Quotas (SNOWFLAKE.CORE.QUOTA)</text>
+            <rect x="120" y="173" width="170" height="40" rx="5" fill="light-dark(white, #134e4a)" stroke="#38B2AC" stroke-width="1"/>
+            <text x="205" y="190" text-anchor="middle" font-size="10" font-weight="600" fill="light-dark(#234E52, #99f6e4)">TIER 1</text>
+            <text x="205" y="205" text-anchor="middle" font-size="9" fill="light-dark(#1A202C, #94a3b8)">1 cr/day | 10 cr/mo</text>
+            <rect x="310" y="173" width="170" height="40" rx="5" fill="light-dark(white, #134e4a)" stroke="#38B2AC" stroke-width="1"/>
+            <text x="395" y="190" text-anchor="middle" font-size="10" font-weight="600" fill="light-dark(#234E52, #99f6e4)">TIER 2</text>
+            <text x="395" y="205" text-anchor="middle" font-size="9" fill="light-dark(#1A202C, #94a3b8)">2 cr/day | 20 cr/mo</text>
+            <rect x="500" y="173" width="170" height="40" rx="5" fill="light-dark(white, #134e4a)" stroke="#38B2AC" stroke-width="1"/>
+            <text x="585" y="190" text-anchor="middle" font-size="10" font-weight="600" fill="light-dark(#234E52, #99f6e4)">TIER 3</text>
+            <text x="585" y="205" text-anchor="middle" font-size="9" fill="light-dark(#1A202C, #94a3b8)">3 cr/day | 30 cr/mo</text>
+
+            <!-- Enforcement box -->
+            <path d="M700 182 L740 182" fill="none" stroke="#FC8181" stroke-width="1.5" marker-end="url(#ar)"/>
+            <rect x="745" y="162" width="45" height="45" rx="5" fill="light-dark(#FFF5F5, #450a0a)" stroke="#FC8181" stroke-width="1.5"/>
+            <text x="767" y="181" text-anchor="middle" font-size="8" font-weight="600" fill="light-dark(#742A2A, #fca5a5)">Notify</text>
+            <text x="767" y="192" text-anchor="middle" font-size="7" fill="light-dark(#742A2A, #fca5a5)">&amp;</text>
+            <text x="767" y="202" text-anchor="middle" font-size="8" font-weight="600" fill="light-dark(#742A2A, #fca5a5)">Block</text>
+
+            <!-- Arrow: Quotas → Tags -->
+            <path d="M400 225 L400 265" fill="none" stroke="#4A5568" stroke-width="1.5" marker-end="url(#a)"/>
+            <text x="415" y="250" font-size="9" fill="light-dark(#2D3748, #94a3b8)">scoped by tag</text>
+
+            <!-- ROW 3: Tag System -->
+            <rect x="200" y="270" width="400" height="55" rx="8" fill="light-dark(#FAF5FF, #2e1065)" stroke="#9F7AEA" stroke-width="1.5"/>
+            <text x="400" y="293" text-anchor="middle" font-size="12" font-weight="600" fill="light-dark(#553C9A, #c4b5fd)">AI_COST_TIER Tag</text>
+            <text x="400" y="312" text-anchor="middle" font-size="10" fill="light-dark(#1A202C, #94a3b8)">Values: TIER_1 | TIER_2 | TIER_3 | EXEMPT</text>
+
+            <!-- Auto-tag task -->
+            <path d="M195 297 L130 297" fill="none" stroke="#4299E1" stroke-width="1.5" marker-end="url(#abl)"/>
+            <rect x="15" y="275" width="115" height="50" rx="6" fill="light-dark(#EBF8FF, #172554)" stroke="#4299E1" stroke-width="1.5"/>
+            <text x="72" y="295" text-anchor="middle" font-size="9" font-weight="600" fill="light-dark(#2A4365, #93c5fd)">AUTO-TAG TASK</text>
+            <text x="72" y="309" text-anchor="middle" font-size="8" fill="light-dark(#1A202C, #94a3b8)">Daily 2 PM ET</text>
+            <text x="72" y="319" text-anchor="middle" font-size="7" fill="light-dark(#2D3748, #64748b)">New users &rarr; TIER_1</text>
+
+            <!-- Arrow: Tags → Users -->
+            <path d="M400 325 L400 365" fill="none" stroke="#4A5568" stroke-width="1.5" marker-end="url(#a)"/>
+            <text x="415" y="350" font-size="9" fill="light-dark(#2D3748, #94a3b8)">applied to</text>
+
+            <!-- ROW 4: Users -->
+            <rect x="200" y="370" width="400" height="55" rx="8" fill="light-dark(#E8F4FD, #0c2d48)" stroke="#29B5E8" stroke-width="1.5"/>
+            <text x="400" y="395" text-anchor="middle" font-size="12" font-weight="600" fill="light-dark(#11567F, #7dd3fc)">Snowflake Users</text>
+            <text x="400" y="412" text-anchor="middle" font-size="10" fill="light-dark(#1A202C, #94a3b8)">Each user tagged to a tier (or EXEMPT to bypass)</text>
+
+            <!-- Arrow: Users → AI -->
+            <path d="M400 425 L400 465" fill="none" stroke="#4A5568" stroke-width="1.5" marker-end="url(#a)"/>
+            <text x="415" y="450" font-size="9" fill="light-dark(#2D3748, #94a3b8)">consume</text>
+
+            <!-- ROW 5: AI Services -->
+            <rect x="100" y="470" width="600" height="55" rx="8" fill="light-dark(#FFF5E6, #451a03)" stroke="#F6AD55" stroke-width="1.5"/>
+            <text x="400" y="493" text-anchor="middle" font-size="12" font-weight="600" fill="light-dark(#1A202C, #fdba74)">Snowflake AI Services</text>
+            <text x="400" y="512" text-anchor="middle" font-size="10" fill="light-dark(#1A202C, #94a3b8)">AI_COMPLETE | AI_EXTRACT | AI_CLASSIFY | Cortex Agent | CoWork | CoCo</text>
+
+            <!-- Credit metering arrow back up -->
+            <path d="M710 490 L750 490 L750 225 L700 225" fill="none" stroke="#38B2AC" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#at)"/>
+            <text x="762" y="370" font-size="8" fill="#38B2AC" transform="rotate(90,762,370)">credits metered</text>
+
+            <!-- RBAC Footer -->
+            <rect x="50" y="555" width="700" height="45" rx="6" fill="light-dark(white, #1e293b)" stroke="light-dark(#E2E8F0, #334155)" stroke-width="1"/>
+            <text x="400" y="572" text-anchor="middle" font-size="11" font-weight="600" fill="light-dark(#2D3748, #e2e8f0)">RBAC: QUOTA_ADMIN (admin) | AI_USERS (end users)</text>
+            <text x="400" y="590" text-anchor="middle" font-size="9" fill="light-dark(#2D3748, #94a3b8)">QUOTA_ADMIN owns all objects | AI_USERS grants Cortex AI access | EXEMPT users bypass enforcement</text>
+
+            <!-- Legend -->
+            <rect x="50" y="620" width="700" height="40" rx="6" fill="light-dark(white, #1e293b)" stroke="light-dark(#E2E8F0, #334155)" stroke-width="1"/>
+            <text x="80" y="644" font-size="9" font-weight="600" fill="light-dark(#1A202C, #e2e8f0)">Legend:</text>
+            <line x1="130" y1="641" x2="165" y2="641" stroke="#4A5568" stroke-width="1.5"/>
+            <text x="170" y="644" font-size="9" fill="light-dark(#1A202C, #94a3b8)">Data flow</text>
+            <rect x="240" y="634" width="14" height="14" rx="3" fill="light-dark(#EBF8FF, #172554)" stroke="#4299E1" stroke-width="1"/>
+            <text x="260" y="645" font-size="9" fill="light-dark(#1A202C, #94a3b8)">Scheduled task</text>
+            <line x1="350" y1="641" x2="385" y2="641" stroke="#FC8181" stroke-width="1.5"/>
+            <text x="390" y="644" font-size="9" fill="light-dark(#1A202C, #94a3b8)">Enforcement</text>
+            <line x1="470" y1="641" x2="505" y2="641" stroke="#38B2AC" stroke-width="1.2" stroke-dasharray="4,3"/>
+            <text x="510" y="644" font-size="9" fill="light-dark(#1A202C, #94a3b8)">Credit metering</text>
+
+            <defs>
+              <marker id="a" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#4A5568" stroke-width="1"/></marker>
+              <marker id="ag" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#48BB78" stroke-width="1"/></marker>
+              <marker id="ar" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#FC8181" stroke-width="1"/></marker>
+              <marker id="abl" markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto"><path d="M8,0 L0,3 L8,6" fill="none" stroke="#4299E1" stroke-width="1"/></marker>
+              <marker id="at" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#38B2AC" stroke-width="1"/></marker>
+            </defs>
+          </svg>
+        </div>
+
+        <h2>How It Works</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-title">Users are tagged to a tier</div>
+              <div class="step-desc">The <code>AI_COST_TIER</code> tag on each user object determines which quota applies. New users are auto-tagged to TIER_1 by a daily scheduled task.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <div class="step-title">Users consume AI services</div>
+              <div class="step-desc">Every AI function call, Cortex Agent interaction, CoWork session, and CoCo usage is metered per-user and attributed to their quota.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-title">Quotas evaluate and enforce</div>
+              <div class="step-desc">Within minutes of spend, the enforcement pipeline compares usage to limits. At 50%/80%/100%, email notifications fire. At 100%, the user is blocked.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <div class="step-title">Admins manage via the app</div>
+              <div class="step-desc">The Streamlit app provides a single pane of glass for quota management, tier changes, block status, and audit logging.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE 4: Admin App -->
+      <section id="admin-app" class="page">
+        <div class="page-label">Page 04</div>
+        <h1>Admin App</h1>
+        <p>A Streamlit-in-Snowflake application deployed under the QUOTA_ADMIN role. Every write operation requires a ServiceNow ticket for audit compliance.</p>
+
+        <div class="app-pages">
+          <div class="app-page">
+            <div class="ap-name">Quota Management</div>
+            <div class="ap-desc">View/edit daily &amp; monthly limits, manage notification thresholds, toggle block enforcement per quota.</div>
+          </div>
+          <div class="app-page">
+            <div class="ap-name">Tag Management</div>
+            <div class="ap-desc">View tier assignments across all users. Move users between tiers (change tag value).</div>
+          </div>
+          <div class="app-page">
+            <div class="ap-name">Block Status</div>
+            <div class="ap-desc">See currently blocked users per quota. Perform tier upgrades to unblock.</div>
+          </div>
+          <div class="app-page">
+            <div class="ap-name">Tier Lookup</div>
+            <div class="ap-desc">Real-time tag lookup via <code>SYSTEM$GET_TAG()</code> &mdash; bypasses the 2-hour ACCOUNT_USAGE lag. Single and bulk lookup.</div>
+          </div>
+          <div class="app-page">
+            <div class="ap-name">Exempt Users</div>
+            <div class="ap-desc">Manage the exemption list. Exempt users are excluded from automatic tagging and quota enforcement.</div>
+          </div>
+          <div class="app-page">
+            <div class="ap-name">Untagged Users</div>
+            <div class="ap-desc">Find users who don't have a tier tag yet. Bulk-assign them to TIER_1 or run the auto-tag procedure.</div>
+          </div>
+          <div class="app-page">
+            <div class="ap-name">Execution Log</div>
+            <div class="ap-desc">View automated procedure run history (TAG_NEW_USERS). See skipped users with detailed error reasons.</div>
+          </div>
+          <div class="app-page">
+            <div class="ap-name">Audit Log</div>
+            <div class="ap-desc">All manual write operations with the operator's username, timestamp (CST), and ServiceNow ticket reference.</div>
+          </div>
+        </div>
+
+        <div class="highlight">
+          <strong>Audit compliance:</strong> Every quota change, tier move, threshold edit, and exemption update is logged with who did it, when, and the ServiceNow ticket number.
+        </div>
+      </section>
+
+      <!-- PAGE 5: Deployment -->
+      <section id="deployment" class="page">
+        <div class="page-label">Page 05</div>
+        <h1>Deployment</h1>
+        <p>Three files, three steps. The entire framework deploys in under 15 minutes.</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-title">Run <code>01-setup.sql</code></div>
+              <div class="step-desc">Creates QUOTA_ADMIN and AI_USERS roles, grants, database, schema, tables, procedures, and scheduled tasks. Runs as SECURITYADMIN &rarr; SYSADMIN &rarr; ACCOUNTADMIN &rarr; QUOTA_ADMIN (sequential role switches within the script).</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <div class="step-title">Run <code>02-create-quota.sql</code></div>
+              <div class="step-desc">Creates the 3 quota objects (TIER1, TIER2, TIER3) with limits, notification thresholds, block enforcement, and admin email. Runs as QUOTA_ADMIN.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-title">Deploy Streamlit App</div>
+              <div class="step-desc">Upload <code>streamlit_app_sidebar.py</code> and font files to Streamlit-in-Snowflake via Snowsight. Deploy under the QUOTA_ADMIN role. See <code>deployment-instructions.md</code> for detailed steps.</div>
+            </div>
+          </div>
+        </div>
+
+        <h2>Delivered Files</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td><code>01-setup.sql</code></td><td>Roles, grants, database, schema, tables, procedures, tasks</td></tr>
+              <tr><td><code>02-create-quota.sql</code></td><td>Quota objects with limits, notifications, enforcement</td></tr>
+              <tr><td><code>03-generate-usage.sql</code></td><td>Test script &mdash; generate AI usage as demo users</td></tr>
+              <tr><td><code>04-monitor-verify.sql</code></td><td>Monitoring queries &mdash; blocks, usage, thresholds</td></tr>
+              <tr><td><code>05-cleanup.sql</code></td><td>Tear-down script to remove all objects</td></tr>
+              <tr><td><code>quota-admin-app/</code></td><td>Streamlit app, deployment guide, fonts</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- PAGE 6: Customization -->
+      <section id="customization" class="page">
+        <div class="page-label">Page 06</div>
+        <h1>Customization</h1>
+        <p>The framework is designed to be tailored to your organization. All values are configurable.</p>
+
+        <h2>Role &amp; Object Names</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Default</th><th>Replace With</th></tr></thead>
+            <tbody>
+              <tr><td><code>QUOTA_ADMIN</code></td><td>Your admin role name</td></tr>
+              <tr><td><code>AI_USERS</code></td><td>Your role that end users have for Cortex AI access</td></tr>
+              <tr><td><code>COST_MGMT_DB.QUOTA_SCHEMA</code></td><td>Your database and schema</td></tr>
+              <tr><td><code>XSMALL_WH</code></td><td>Your warehouse</td></tr>
+              <tr><td><code>admin@yourcompany.com</code></td><td>Your admin notification email</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Tier Limits</h2>
+        <p>Adjust daily and monthly credit limits in <code>02-create-quota.sql</code>:</p>
+        <pre>-- Example: Set TIER 2 to 5 credits/day, 50 credits/month
+CALL tier2_quota!SET_PER_USER_LIMIT(50);           -- monthly
+CALL tier2_quota!SET_PER_USER_LIMIT(5, 'DAILY');   -- daily</pre>
+
+        <h2>Notification Thresholds</h2>
+        <p>Add or remove notification thresholds at any percentage:</p>
+        <pre>-- Add a 70% projected monthly warning
+CALL tier1_quota!ADD_NOTIFICATION_THRESHOLD(70, 'PROJECTED', TRUE, 'MONTHLY');
+
+-- Remove the 50% daily threshold
+CALL tier1_quota!REMOVE_NOTIFICATION_THRESHOLD(50, 'ACTUAL', 'DAILY');</pre>
+
+        <h2>Adding More Tiers</h2>
+        <p>Create additional quota objects following the same pattern in <code>02-create-quota.sql</code>. Add the new tag value (<code>TIER_4</code>, etc.) and update the Streamlit app's <code>QUOTAS</code> list.</p>
+
+        <h2>Covered AI Services</h2>
+        <p>Control which services are metered per quota:</p>
+        <pre>-- Add a specific Cortex Agent
+CALL tier1_quota!ADD_SHARED_RESOURCE(
+  'CORTEX AGENT',
+  (SELECT SYSTEM$REFERENCE('CORTEX AGENT', 'my_agent'))
+);
+
+-- Add a specific warehouse
+CALL tier1_quota!ADD_SHARED_RESOURCE(
+  'WAREHOUSE',
+  (SELECT SYSTEM$REFERENCE('WAREHOUSE', 'MY_WH'))
+);</pre>
+
+        <div class="highlight">
+          <strong>Per-User Quotas is a GA feature.</strong> No preview flags or support tickets required. All quota methods, block enforcement, and notification capabilities are production-ready.
+        </div>
+      </section>
+
+      <div class="footer">
+        Per-User AI Cost Control &amp; Guardrails &mdash; Built on Snowflake Per-User Quotas (GA)
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Active nav highlighting -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var links = document.querySelectorAll('.sidebar a');
+      var sections = [];
+      links.forEach(function(link) {
+        var id = link.getAttribute('href').replace('#', '');
+        var el = document.getElementById(id);
+        if (el) sections.push({ id: id, el: el, link: link });
+      });
+
+      function updateActive() {
+        var scrollTop = window.scrollY + 100;
+        var active = sections[0];
+        for (var i = 0; i < sections.length; i++) {
+          if (sections[i].el.offsetTop <= scrollTop) {
+            active = sections[i];
+          }
+        }
+        links.forEach(function(l) { l.classList.remove('active'); });
+        if (active) active.link.classList.add('active');
+      }
+
+      window.addEventListener('scroll', updateActive);
+      updateActive();
+    });
+  </script>
+</body>
+</html>
