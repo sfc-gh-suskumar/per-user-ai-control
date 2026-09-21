@@ -39,6 +39,9 @@ CALL tier1_quota!ADD_SHARED_RESOURCE('CORTEX CODE');
 -- Limits
 CALL tier1_quota!SET_PER_USER_LIMIT(10);          -- 10 credits/month
 CALL tier1_quota!SET_PER_USER_LIMIT(1, 'DAILY');  -- 1 credit/day
+CALL tier1_quota!SET_PER_USER_LIMIT(5, 'WEEKLY');
+
+
 
 -- Notifications (monthly)
 CALL tier1_quota!ADD_NOTIFICATION_THRESHOLD(50, 'ACTUAL', TRUE, 'MONTHLY');   -- 50% actual monthly
@@ -51,13 +54,10 @@ CALL tier1_quota!ADD_NOTIFICATION_THRESHOLD(80, 'ACTUAL', TRUE, 'DAILY');    -- 
 CALL tier1_quota!ADD_NOTIFICATION_THRESHOLD(100, 'ACTUAL', TRUE, 'DAILY');   -- 100% actual daily
 
 -- Admin email
-CALL tier1_quota!SET_ADMIN_EMAILS('admin@yourcompany.com');
+CALL tier1_quota!SET_ADMIN_EMAILS('sushant.kumar@snowflake.com');
 
 -- Block enforcement — blocks ALL AI services when limit exceeded
 CALL tier1_quota!SET_BLOCK_ENFORCEMENT_ENABLED(TRUE);
-
--- Hourly evaluation
-CALL tier1_quota!SET_REFRESH_TIER('TIER_1H');
 
 
 -- ═══════════════════════════════════════════════════════════════
@@ -86,6 +86,8 @@ CALL tier2_quota!ADD_SHARED_RESOURCE('CORTEX CODE');
 -- Limits
 CALL tier2_quota!SET_PER_USER_LIMIT(20);          -- 20 credits/month
 CALL tier2_quota!SET_PER_USER_LIMIT(2, 'DAILY');  -- 2 credits/day
+CALL tier2_quota!SET_PER_USER_LIMIT(10, 'WEEKLY'); 
+
 
 -- Notifications (monthly)
 CALL tier2_quota!ADD_NOTIFICATION_THRESHOLD(50, 'ACTUAL', TRUE, 'MONTHLY');   -- 50% actual monthly
@@ -98,13 +100,10 @@ CALL tier2_quota!ADD_NOTIFICATION_THRESHOLD(80, 'ACTUAL', TRUE, 'DAILY');    -- 
 CALL tier2_quota!ADD_NOTIFICATION_THRESHOLD(100, 'ACTUAL', TRUE, 'DAILY');   -- 100% actual daily
 
 -- Admin email
-CALL tier2_quota!SET_ADMIN_EMAILS('admin@yourcompany.com');
+CALL tier2_quota!SET_ADMIN_EMAILS('sushant.kumar@snowflake.com');
 
 -- Block enforcement
 CALL tier2_quota!SET_BLOCK_ENFORCEMENT_ENABLED(TRUE);
-
--- Hourly evaluation
-CALL tier2_quota!SET_REFRESH_TIER('TIER_1H');
 
 
 -- ═══════════════════════════════════════════════════════════════
@@ -133,6 +132,7 @@ CALL tier3_quota!ADD_SHARED_RESOURCE('CORTEX CODE');
 -- Limits
 CALL tier3_quota!SET_PER_USER_LIMIT(30);          -- 30 credits/month
 CALL tier3_quota!SET_PER_USER_LIMIT(3, 'DAILY');  -- 3 credits/day
+CALL tier3_quota!SET_PER_USER_LIMIT(20, 'WEEKLY'); 
 
 -- Notifications (monthly)
 CALL tier3_quota!ADD_NOTIFICATION_THRESHOLD(50, 'ACTUAL', TRUE, 'MONTHLY');   -- 50% actual monthly
@@ -145,13 +145,10 @@ CALL tier3_quota!ADD_NOTIFICATION_THRESHOLD(80, 'ACTUAL', TRUE, 'DAILY');    -- 
 CALL tier3_quota!ADD_NOTIFICATION_THRESHOLD(100, 'ACTUAL', TRUE, 'DAILY');   -- 100% actual daily
 
 -- Admin email
-CALL tier3_quota!SET_ADMIN_EMAILS('admin@yourcompany.com');
+CALL tier3_quota!SET_ADMIN_EMAILS('sushant.kumar@snowflake.com');
 
 -- Block enforcement
 CALL tier3_quota!SET_BLOCK_ENFORCEMENT_ENABLED(TRUE);
-
--- Hourly evaluation
-CALL tier3_quota!SET_REFRESH_TIER('TIER_1H');
 
 
 -- ═══════════════════════════════════════════════════════════════

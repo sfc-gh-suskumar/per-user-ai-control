@@ -24,7 +24,7 @@
 USE ROLE SECURITYADMIN;
 
 CREATE ROLE IF NOT EXISTS QUOTA_ADMIN;
-GRANT ROLE QUOTA_ADMIN TO USER YOUR_ADMIN_USER;       -- replace with your admin user
+GRANT ROLE QUOTA_ADMIN TO USER SUSKUMAR;  --your_admin_user   -- replace with your admin user if different
 GRANT ROLE QUOTA_ADMIN TO ROLE SYSADMIN;         -- role hierarchy best practice
 
 CREATE ROLE IF NOT EXISTS AI_USERS;              -- role for users who need Cortex AI access
@@ -62,7 +62,7 @@ GRANT IMPORTED PRIVILEGES ON DATABASE SNOWFLAKE TO ROLE QUOTA_ADMIN;
 GRANT APPLY TAG ON ACCOUNT TO ROLE QUOTA_ADMIN;
 
 -- [QUOTA_ADMIN] Warehouse access (for queries, procedures, and tasks)
-GRANT USAGE ON WAREHOUSE XSMALL_WH TO ROLE QUOTA_ADMIN;
+GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE QUOTA_ADMIN;
 
 -- ─────────────────────────────────────────────────────────────
 -- A4: Grants to AI_USERS role (for users who need Cortex AI access)
@@ -71,7 +71,7 @@ GRANT USAGE ON WAREHOUSE XSMALL_WH TO ROLE QUOTA_ADMIN;
 -- ─────────────────────────────────────────────────────────────
 
 -- [AI_USERS] Warehouse access
-GRANT USAGE ON WAREHOUSE XSMALL_WH TO ROLE AI_USERS;
+GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE AI_USERS;
 
 -- [AI_USERS] AI function access
 GRANT DATABASE ROLE SNOWFLAKE.CORTEX_USER TO ROLE AI_USERS;
@@ -86,28 +86,28 @@ GRANT DATABASE ROLE SNOWFLAKE.COPILOT_USER TO ROLE AI_USERS;
 CREATE USER IF NOT EXISTS DEMO_TIER1_USER
   PASSWORD = 'DemoTier1_2026!'
   DEFAULT_ROLE = AI_USERS
-  DEFAULT_WAREHOUSE = XSMALL_WH
+  DEFAULT_WAREHOUSE = COMPUTE_WH
   EMAIL = 'admin@yourcompany.com'
   COMMENT = 'Demo — Tier 1 user';
 
 CREATE USER IF NOT EXISTS DEMO_TIER2_USER
   PASSWORD = 'DemoTier2_2026!'
   DEFAULT_ROLE = AI_USERS
-  DEFAULT_WAREHOUSE = XSMALL_WH
+  DEFAULT_WAREHOUSE = COMPUTE_WH
   EMAIL = 'admin@yourcompany.com'
   COMMENT = 'Demo — Tier 2 user';
 
 CREATE USER IF NOT EXISTS DEMO_TIER3_USER
   PASSWORD = 'DemoTier3_2026!'
   DEFAULT_ROLE = AI_USERS
-  DEFAULT_WAREHOUSE = XSMALL_WH
+  DEFAULT_WAREHOUSE = COMPUTE_WH
   EMAIL = 'admin@yourcompany.com'
   COMMENT = 'Demo — Tier 3 user';
 
 CREATE USER IF NOT EXISTS DEMO_NOEMAIL_USER
   PASSWORD = 'DemoNoEmail_2026!'
   DEFAULT_ROLE = AI_USERS
-  DEFAULT_WAREHOUSE = XSMALL_WH
+  DEFAULT_WAREHOUSE = COMPUTE_WH
   COMMENT = 'Demo — No email user (Tier 1). Notifications go to admin email only.';
 
 -- Grant AI_USERS role to demo users (gives them Cortex AI access)
@@ -153,8 +153,8 @@ CREATE OR REPLACE TABLE EXEMPT_USERS (
 
 INSERT INTO EXEMPT_USERS (USER_NAME, REASON)
 VALUES
-  ('YOUR_ADMIN_USER', 'Account admin — must never be blocked'),
-  ('SNOWFLAKE', 'System user');
+  ('suskumar', 'Account admin — must never be blocked'),
+  ('SNOWFLAKE', 'System user'); --YOUR_ADMIN_USER
 
 -- ─────────────────────────────────────────────────────────────
 -- C4: Procedure execution log table
@@ -327,7 +327,7 @@ ALTER TASK REFRESH_USAGE_CACHE_TASK RESUME;
 
 -- Daily 2 PM ET: auto-tag new users to TIER_1
 CREATE OR REPLACE TASK DAILY_TAG_NEW_USERS
-  WAREHOUSE = XSMALL_WH
+  WAREHOUSE = COMPUTE_WH
   SCHEDULE = 'USING CRON 0 14 * * * America/New_York'
   COMMENT = 'Tags new users to TIER_1 daily at 2 PM ET, excluding exempt users'
 AS
