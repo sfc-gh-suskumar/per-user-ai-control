@@ -105,7 +105,7 @@ CREATE USER IF NOT EXISTS DEMO_TIER3_USER
   COMMENT = 'Demo — Tier 3 user';
 
 CREATE USER IF NOT EXISTS DEMO_NOEMAIL_USER
-  PASSWORD = 'DemoNoEmail_2026!'
+  PASSWORD = '< >'
   DEFAULT_ROLE = AI_USERS
   DEFAULT_WAREHOUSE = COMPUTE_WH
   COMMENT = 'Demo — No email user (Tier 1). Notifications go to admin email only.';
