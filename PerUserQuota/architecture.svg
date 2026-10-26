@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 900" font-family="Inter, Arial, sans-serif">
+  <rect width="800" height="900" fill="#FAFBFC"/>
+
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#11567F">Per-User AI Cost Control &amp; Guardrails</text>
+  <text x="400" y="50" text-anchor="middle" font-size="11" fill="#2D3748">Top-down architecture: App → Cache → Tasks → Quotas → Users</text>
+
+  <!-- ═══ ROW 1: Quota Admin App ═══ -->
+  <rect x="200" y="70" width="400" height="70" rx="10" fill="#11567F" stroke="#0D4A6B" stroke-width="2"/>
+  <text x="400" y="97" text-anchor="middle" font-size="14" font-weight="700" fill="white">Streamlit Admin App</text>
+  <text x="400" y="117" text-anchor="middle" font-size="10" fill="#B2D4E8">Quota Mgmt | Tag Mgmt | Block Status | Tier Lookup | Per-User Usage | Audit Log</text>
+  <text x="400" y="132" text-anchor="middle" font-size="9" fill="#8BB8D4">Deployed as QUOTA_ADMIN role — instant page loads</text>
+
+  <!-- Arrow: App → Cache -->
+  <path d="M400 140 L400 175" fill="none" stroke="#48BB78" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <text x="415" y="162" font-size="9" fill="#48BB78" font-weight="600">reads (instant)</text>
+
+  <!-- ═══ ROW 2: Cache Table ═══ -->
+  <rect x="200" y="180" width="400" height="60" rx="8" fill="#F0FFF4" stroke="#48BB78" stroke-width="1.5"/>
+  <text x="400" y="205" text-anchor="middle" font-size="13" font-weight="600" fill="#22543D">QUOTA_USAGE_CACHE</text>
+  <text x="400" y="225" text-anchor="middle" font-size="10" fill="#1A202C">Pre-computed usage data | Atomic swap (no downtime)</text>
+
+  <!-- Arrow: Cache ← Task (left side) -->
+  <path d="M195 210 L130 210" fill="none" stroke="#4299E1" stroke-width="1.5" marker-end="url(#arrowBlueLeft)"/>
+
+  <!-- ═══ ROW 2 LEFT: Refresh Task ═══ -->
+  <rect x="15" y="185" width="115" height="55" rx="6" fill="#EBF8FF" stroke="#4299E1" stroke-width="1.5"/>
+  <text x="72" y="206" text-anchor="middle" font-size="9" font-weight="600" fill="#2A4365">REFRESH TASK</text>
+  <text x="72" y="220" text-anchor="middle" font-size="8" fill="#1A202C">Every 1 hour</text>
+  <text x="72" y="232" text-anchor="middle" font-size="7" fill="#2D3748">(configurable)</text>
+
+  <!-- Arrow: Cache → Quotas -->
+  <path d="M400 240 L400 280" fill="none" stroke="#4A5568" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="415" y="265" font-size="9" fill="#2D3748">fetches from</text>
+
+  <!-- ═══ ROW 3: Per-User Quotas ═══ -->
+  <rect x="100" y="285" width="600" height="85" rx="8" fill="#E6FFFA" stroke="#38B2AC" stroke-width="1.5"/>
+  <text x="400" y="308" text-anchor="middle" font-size="13" font-weight="600" fill="#234E52">Per-User Quotas (SNOWFLAKE.CORE.QUOTA)</text>
+
+  <!-- Three quota boxes inside -->
+  <rect x="120" y="318" width="170" height="40" rx="5" fill="white" stroke="#38B2AC" stroke-width="1"/>
+  <text x="205" y="335" text-anchor="middle" font-size="10" font-weight="600" fill="#234E52">TIER 1</text>
+  <text x="205" y="350" text-anchor="middle" font-size="9" fill="#1A202C">1 cr/day | 10 cr/month</text>
+
+  <rect x="310" y="318" width="170" height="40" rx="5" fill="white" stroke="#38B2AC" stroke-width="1"/>
+  <text x="395" y="335" text-anchor="middle" font-size="10" font-weight="600" fill="#234E52">TIER 2</text>
+  <text x="395" y="350" text-anchor="middle" font-size="9" fill="#1A202C">2 cr/day | 20 cr/month</text>
+
+  <rect x="500" y="318" width="170" height="40" rx="5" fill="white" stroke="#38B2AC" stroke-width="1"/>
+  <text x="585" y="335" text-anchor="middle" font-size="10" font-weight="600" fill="#234E52">TIER 3</text>
+  <text x="585" y="350" text-anchor="middle" font-size="9" fill="#1A202C">3 cr/day | 30 cr/month</text>
+
+  <!-- Arrow: Quotas → Enforcement (right) -->
+  <path d="M700 328 L740 328" fill="none" stroke="#FC8181" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+
+  <!-- Enforcement box (right of quotas) -->
+  <rect x="745" y="305" width="45" height="50" rx="5" fill="#FFF5F5" stroke="#FC8181" stroke-width="1.5"/>
+  <text x="767" y="325" text-anchor="middle" font-size="8" font-weight="600" fill="#742A2A">Notify</text>
+  <text x="767" y="337" text-anchor="middle" font-size="7" fill="#742A2A">&amp;</text>
+  <text x="767" y="349" text-anchor="middle" font-size="8" font-weight="600" fill="#742A2A">Block</text>
+
+  <!-- Arrow: Quotas → Tag routing -->
+  <path d="M400 370 L400 410" fill="none" stroke="#4A5568" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="415" y="395" font-size="9" fill="#2D3748">scoped by tag</text>
+
+  <!-- ═══ ROW 4: Tag System ═══ -->
+  <rect x="200" y="415" width="400" height="55" rx="8" fill="#FAF5FF" stroke="#9F7AEA" stroke-width="1.5"/>
+  <text x="400" y="438" text-anchor="middle" font-size="12" font-weight="600" fill="#553C9A">AI_COST_TIER Tag</text>
+  <text x="400" y="457" text-anchor="middle" font-size="10" fill="#1A202C">Values: TIER_1 | TIER_2 | TIER_3 | EXEMPT</text>
+
+  <!-- Arrow: Tag ← Auto-tag task (left side) -->
+  <path d="M195 442 L130 442" fill="none" stroke="#4299E1" stroke-width="1.5" marker-end="url(#arrowBlueLeft)"/>
+
+  <!-- Auto-tag task (left of tag) -->
+  <rect x="15" y="420" width="115" height="50" rx="6" fill="#EBF8FF" stroke="#4299E1" stroke-width="1.5"/>
+  <text x="72" y="440" text-anchor="middle" font-size="9" font-weight="600" fill="#2A4365">AUTO-TAG TASK</text>
+  <text x="72" y="454" text-anchor="middle" font-size="8" fill="#1A202C">Daily 2 PM ET</text>
+  <text x="72" y="464" text-anchor="middle" font-size="7" fill="#2D3748">New users → TIER_1</text>
+
+  <!-- Arrow: Tags → Users -->
+  <path d="M400 470 L400 510" fill="none" stroke="#4A5568" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="415" y="495" font-size="9" fill="#2D3748">applied to</text>
+
+  <!-- ═══ ROW 5: Users ═══ -->
+  <rect x="200" y="515" width="400" height="55" rx="8" fill="#E8F4FD" stroke="#29B5E8" stroke-width="1.5"/>
+  <text x="400" y="540" text-anchor="middle" font-size="12" font-weight="600" fill="#11567F">Snowflake Users</text>
+  <text x="400" y="557" text-anchor="middle" font-size="10" fill="#1A202C">Each user tagged to a tier (or EXEMPT to bypass quotas)</text>
+
+  <!-- Arrow: Users → AI Services -->
+  <path d="M400 570 L400 610" fill="none" stroke="#4A5568" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="415" y="595" font-size="9" fill="#2D3748">consume</text>
+
+  <!-- ═══ ROW 6: AI Services ═══ -->
+  <rect x="100" y="615" width="600" height="55" rx="8" fill="#FFF5E6" stroke="#F6AD55" stroke-width="1.5"/>
+  <text x="400" y="638" text-anchor="middle" font-size="12" font-weight="600" fill="#1A202C">Snowflake AI Services</text>
+  <text x="400" y="657" text-anchor="middle" font-size="10" fill="#1A202C">AI_COMPLETE | AI_EXTRACT | AI_CLASSIFY | AI_SENTIMENT | Cortex Agent | CoWork | CoCo</text>
+
+  <!-- Arrow: AI Services → Credits metered back up to quotas -->
+  <path d="M710 635 L750 635 L750 370 L700 370" fill="none" stroke="#38B2AC" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrowTeal)"/>
+  <text x="762" y="500" font-size="8" fill="#38B2AC" transform="rotate(90,762,500)">credits metered</text>
+
+  <!-- ═══ ROW 7: RBAC Footer ═══ -->
+  <rect x="50" y="700" width="700" height="50" rx="6" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="400" y="716" text-anchor="middle" font-size="11" font-weight="600" fill="#2D3748">RBAC: QUOTA_ADMIN (admin) | AI_USERS (end users)</text>
+  <text x="400" y="737" text-anchor="middle" font-size="9" fill="#2D3748">QUOTA_ADMIN owns all objects (quotas, tag, tables, tasks, app) | AI_USERS grants Cortex AI access | EXEMPT users bypass enforcement</text>
+
+  <!-- Schedule note -->
+  <rect x="50" y="770" width="700" height="35" rx="6" fill="#FFFBEB" stroke="#F6E05E" stroke-width="1"/>
+  <text x="400" y="792" text-anchor="middle" font-size="10" fill="#1A202C">Data refresh schedule is configurable: ALTER TASK REFRESH_USAGE_CACHE_TASK SET SCHEDULE = '30 MINUTE'  (currently: every 1 hour)</text>
+
+  <!-- Legend -->
+  <rect x="50" y="825" width="700" height="55" rx="6" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="70" y="845" font-size="9" font-weight="600" fill="#1A202C">Legend:</text>
+  <line x1="120" y1="842" x2="155" y2="842" stroke="#4A5568" stroke-width="1.5"/>
+  <text x="160" y="845" font-size="9" fill="#1A202C">Data flow</text>
+  <rect x="230" y="835" width="14" height="14" rx="3" fill="#EBF8FF" stroke="#4299E1" stroke-width="1"/>
+  <text x="250" y="846" font-size="9" fill="#1A202C">Scheduled task</text>
+  <line x1="340" y1="842" x2="375" y2="842" stroke="#FC8181" stroke-width="1.5"/>
+  <text x="380" y="845" font-size="9" fill="#1A202C">Enforcement</text>
+  <line x1="455" y1="842" x2="490" y2="842" stroke="#38B2AC" stroke-width="1.2" stroke-dasharray="4,3"/>
+  <text x="495" y="845" font-size="9" fill="#1A202C">Credit metering</text>
+
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#4A5568" stroke-width="1"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#48BB78" stroke-width="1"/>
+    </marker>
+    <marker id="arrowRed" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#FC8181" stroke-width="1"/>
+    </marker>
+    <marker id="arrowBlueLeft" markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto">
+      <path d="M8,0 L0,3 L8,6" fill="none" stroke="#4299E1" stroke-width="1"/>
+    </marker>
+    <marker id="arrowTeal" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#38B2AC" stroke-width="1"/>
+    </marker>
+  </defs>
+</svg>
